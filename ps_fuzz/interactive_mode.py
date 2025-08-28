@@ -53,6 +53,7 @@ class MainMenu:
             ['Fuzzer Configuration', None, FuzzerOptions],
             ['Target LLM Configuration', None, TargetLLMOptions],
             ['Attack LLM Configuration', None, AttackLLMOptions],
+            ['Embedding Configuration', None, EmbeddingOptions],
             ['Show all configuration', show_all_config, MainMenu],
             ['Exit', None, None],
         ]
@@ -104,7 +105,9 @@ class TargetLLMOptions:
         models_list = get_langchain_chat_models_info().keys()
         print("Target LLM Options: Review and modify the target LLM configuration")
         print("------------------------------------------------------------------")
-        result = inquirer.prompt([
+        
+        # First get provider and model
+        basic_result = inquirer.prompt([
             inquirer.List(
                 'target_provider',
                 message="LLM Provider configured in the AI chat application being fuzzed",
@@ -116,9 +119,32 @@ class TargetLLMOptions:
                 default=state.target_model
             ),
         ])
-        if result is None: return  # Handle prompt cancellation concisely
-        state.target_provider = result['target_provider']
-        state.target_model = result['target_model']
+        if basic_result is None: return  # Handle prompt cancellation concisely
+        
+        # Update state with basic settings
+        state.target_provider = basic_result['target_provider']
+        state.target_model = basic_result['target_model']
+        
+        # Ask for base URL if provider is ollama or open_ai
+        if state.target_provider == 'ollama':
+            base_url_result = inquirer.prompt([
+                inquirer.Text('ollama_base_url',
+                    message="Ollama Base URL (leave empty for default localhost:11434)",
+                    default=state.ollama_base_url
+                ),
+            ])
+            if base_url_result is not None:
+                state.ollama_base_url = base_url_result['ollama_base_url']
+        elif state.target_provider == 'open_ai':
+            base_url_result = inquirer.prompt([
+                inquirer.Text('openai_base_url',
+                    message="OpenAI Base URL (leave empty for default api.openai.com)",
+                    default=state.openai_base_url
+                ),
+            ])
+            if base_url_result is not None:
+                state.openai_base_url = base_url_result['openai_base_url']
+        
         return MainMenu
 
 class AttackLLMOptions:
@@ -127,7 +153,9 @@ class AttackLLMOptions:
         models_list = get_langchain_chat_models_info().keys()
         print("Attack LLM Options: Review and modify the service LLM configuration used by the tool to help attack the system prompt")
         print("---------------------------------------------------------------------------------------------------------------------")
-        result = inquirer.prompt([
+        
+        # First get provider and model
+        basic_result = inquirer.prompt([
             inquirer.List(
                 'attack_provider',
                 message="Service LLM Provider used to help attacking the system prompt",
@@ -139,9 +167,83 @@ class AttackLLMOptions:
                 default=state.attack_model
             ),
         ])
-        if result is None: return  # Handle prompt cancellation concisely
-        state.attack_provider = result['attack_provider']
-        state.attack_model = result['attack_model']
+        if basic_result is None: return  # Handle prompt cancellation concisely
+        
+        # Update state with basic settings
+        state.attack_provider = basic_result['attack_provider']
+        state.attack_model = basic_result['attack_model']
+        
+        # Ask for base URL if provider is ollama or open_ai
+        if state.attack_provider == 'ollama':
+            base_url_result = inquirer.prompt([
+                inquirer.Text('ollama_base_url',
+                    message="Ollama Base URL (leave empty for default localhost:11434)",
+                    default=state.ollama_base_url
+                ),
+            ])
+            if base_url_result is not None:
+                state.ollama_base_url = base_url_result['ollama_base_url']
+        elif state.attack_provider == 'open_ai':
+            base_url_result = inquirer.prompt([
+                inquirer.Text('openai_base_url',
+                    message="OpenAI Base URL (leave empty for default api.openai.com)",
+                    default=state.openai_base_url
+                ),
+            ])
+            if base_url_result is not None:
+                state.openai_base_url = base_url_result['openai_base_url']
+        
+        return MainMenu
+
+class EmbeddingOptions:
+    @classmethod
+    def show(cls, state: AppConfig):
+        print("Embedding Options: Review and modify the embedding provider configuration")
+        print("--------------------------------------------------------------------------")
+        
+        # First get embedding provider and model
+        basic_result = inquirer.prompt([
+            inquirer.List(
+                'embedding_provider',
+                message="Embedding Provider for vector similarity search",
+                choices=['ollama', 'open_ai'],
+                default=state.embedding_provider
+            ),
+            inquirer.Text('embedding_model',
+                message="Embedding Model for vector similarity search",
+                default=state.embedding_model
+            ),
+        ])
+        if basic_result is None: return  # Handle prompt cancellation concisely
+        
+        # Update state with basic settings
+        state.embedding_provider = basic_result['embedding_provider']
+        state.embedding_model = basic_result['embedding_model']
+        
+        # Ask for base URL based on selected provider
+        if state.embedding_provider == 'ollama':
+            # Use embedding-specific base URL if set, otherwise fall back to main ollama base URL
+            default_url = state.embedding_ollama_base_url or state.ollama_base_url
+            base_url_result = inquirer.prompt([
+                inquirer.Text('embedding_ollama_base_url',
+                    message="Ollama Embedding Base URL (leave empty to use main Ollama base URL or default localhost:11434)",
+                    default=default_url
+                ),
+            ])
+            if base_url_result is not None:
+                state.embedding_ollama_base_url = base_url_result['embedding_ollama_base_url']
+        elif state.embedding_provider == 'open_ai':
+            # Use embedding-specific base URL if set, otherwise fall back to main openai base URL
+            default_url = state.embedding_openai_base_url or state.openai_base_url
+            base_url_result = inquirer.prompt([
+                inquirer.Text('embedding_openai_base_url',
+                    message="OpenAI Embedding Base URL (leave empty to use main OpenAI base URL or default api.openai.com)",
+                    default=default_url
+                ),
+            ])
+            if base_url_result is not None:
+                state.embedding_openai_base_url = base_url_result['embedding_openai_base_url']
+        
         return MainMenu
 
 def interactive_shell(state: AppConfig):

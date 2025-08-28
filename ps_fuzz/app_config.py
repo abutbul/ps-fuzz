@@ -38,14 +38,15 @@ class AppConfig:
                 logger.warning(f"Failed to load config state file {self.config_state_file}: {e}")
 
     def get_attributes(self):
-        return self.config_state
+        attributes = self.config_state.copy()
+        return attributes
 
     def print_as_table(self):
         attributes = self.get_attributes()
         print_table(
             title = "Current configuration",
             headers = ["Option", "Value"],
-            data = [[key, value] for key, value in attributes.items() if key != "system_prompt"] # print all except the system prompt
+            data = [[key, value] for key, value in attributes.items() if key != "system_prompt"] # print only relevant base URLs based on selected providers and only if they have values
         )
         print(f"{colorama.Style.BRIGHT}Current system prompt:{colorama.Style.RESET_ALL}")
         #print(f"{colorama.Style.DIM}{wrap_text(self.system_prompt, width=70)}{colorama.Style.RESET_ALL}")
@@ -184,6 +185,62 @@ class AppConfig:
     def system_prompt(self, value: str):
         self.config_state['system_prompt'] = value
         self.save()
+        
+    @property
+    def ollama_base_url(self) -> str:
+        return self.config_state.get('ollama_base_url', '')
+    
+    @ollama_base_url.setter
+    def ollama_base_url(self, value: str):
+        self.config_state['ollama_base_url'] = value
+        self.save()
+        
+    @property
+    def openai_base_url(self) -> str:
+        return self.config_state.get('openai_base_url', '')
+    
+    @openai_base_url.setter
+    def openai_base_url(self, value: str):
+        self.config_state['openai_base_url'] = value
+        self.save()
+        
+    @property
+    def embedding_provider(self) -> str:
+        return self.config_state.get('embedding_provider', '')
+    
+    @embedding_provider.setter
+    def embedding_provider(self, value: str):
+        if not value: raise ValueError("Embedding provider cannot be empty")
+        self.config_state['embedding_provider'] = value
+        self.save()
+        
+    @property
+    def embedding_ollama_base_url(self) -> str:
+        return self.config_state.get('embedding_ollama_base_url', '')
+    
+    @embedding_ollama_base_url.setter
+    def embedding_ollama_base_url(self, value: str):
+        self.config_state['embedding_ollama_base_url'] = value
+        self.save()
+        
+    @property
+    def embedding_openai_base_url(self) -> str:
+        return self.config_state.get('embedding_openai_base_url', '')
+    
+    @embedding_openai_base_url.setter
+    def embedding_openai_base_url(self, value: str):
+        self.config_state['embedding_openai_base_url'] = value
+        self.save()
+        
+    @property
+    def embedding_model(self) -> str:
+        return self.config_state.get('embedding_model', '')
+    
+    @embedding_model.setter
+    def embedding_model(self, value: str):
+        if not value: raise ValueError("Embedding model cannot be empty")
+        self.config_state['embedding_model'] = value
+        self.save()
 
     def update_from_args(self, args):
         args_dict = vars(args)
@@ -218,6 +275,12 @@ def parse_cmdline_args():
     parser.add_argument('-a', '--attack-temperature', type=float, default=None, help="Temperature for attack model")
     parser.add_argument('-d', '--debug-level', type=int, default=None, help="Debug level (0-2)")
     parser.add_argument("-b", '--batch', action='store_true', help="Run the fuzzer in unattended (batch) mode, bypassing the interactive steps")
+    parser.add_argument('--ollama-base-url', type=str, dest='ollama_base_url', default=None, help="Base URL for Ollama API")
+    parser.add_argument('--openai-base-url', type=str, dest='openai_base_url', default=None, help="Base URL for OpenAI API")
+    parser.add_argument('--embedding-provider', type=str, dest='embedding_provider', default=None, help="Embedding provider (ollama or open_ai)")
+    parser.add_argument('--embedding-ollama-base-url', type=str, dest='embedding_ollama_base_url', default=None, help="Base URL for Ollama Embedding API")
+    parser.add_argument('--embedding-openai-base-url', type=str, dest='embedding_openai_base_url', default=None, help="Base URL for OpenAI Embedding API")
+    parser.add_argument('--embedding-model', type=str, dest='embedding_model', default=None, help="Embedding model name")
     parser.add_argument('system_prompt_file', type=str, nargs='?', default=None, help="Filename containing the system prompt")
     return parser.parse_args()
 

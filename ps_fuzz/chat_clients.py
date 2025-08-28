@@ -30,9 +30,23 @@ class FakeChatClient(ClientBase):
 # Specialized chat client based on langchain supported backends
 class ClientLangChain(ClientBase):
     "Chat model wrapper around LangChain"
-    def __init__(self, backend: str , **kwargs):
+    def __init__(self, backend: str, **kwargs):
         if backend in chat_models_info:
-            self.client = chat_models_info[backend].model_cls(**kwargs)
+            model_cls = chat_models_info[backend].model_cls
+            
+            # Special handling for providers that need base_url
+            if backend == 'ollama' and 'ollama_base_url' in kwargs and kwargs['ollama_base_url']:
+                # Use the ollama_base_url parameter but rename it to base_url for the Ollama client
+                base_url = kwargs.pop('ollama_base_url')
+                kwargs['base_url'] = base_url
+            
+            # Special handling for OpenAI base_url
+            if backend == 'open_ai' and 'openai_base_url' in kwargs and kwargs['openai_base_url']:
+                # Use the openai_base_url parameter but rename it to base_url for the OpenAI client
+                base_url = kwargs.pop('openai_base_url')
+                kwargs['base_url'] = base_url
+                
+            self.client = model_cls(**kwargs)
         else:
             raise ValueError(f"Invalid backend name: {backend}. Supported backends: {', '.join(chat_models_info.keys())}")
 
