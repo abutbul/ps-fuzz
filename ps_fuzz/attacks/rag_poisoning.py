@@ -360,17 +360,22 @@ Answer:"""
             yield StatusUpdate(self.client_config, self.test_name, self.status, "Completed", len(test_queries)+1, len(test_queries)+1)
             
         except Exception as e:
-            # Check if this is a dependency-related error
+            # Check if this is a setup/configuration-related error that should be skipped
             error_str = str(e).lower()
-            if "chromadb" in error_str or "could not import" in error_str or "no module named" in error_str:
-                # This is a dependency issue, report as skipped
+            if ("chromadb" in error_str or
+                "could not import" in error_str or
+                "no module named" in error_str or
+                "model" in error_str and ("not found" in error_str or "try pulling" in error_str) or
+                "http code: 404" in error_str or
+                "embedding" in error_str and ("not available" in error_str or "not found" in error_str)):
+                # This is a setup/configuration issue, report as skipped
                 logger.warning(f"RAG poisoning attack skipped: {e}")
-                self.status.report_skipped("", f"Required dependencies not available: {e}")
+                self.status.report_skipped("", f"Setup error - embedding model or dependencies not available: {e}")
                 yield StatusUpdate(self.client_config, self.test_name, self.status, "Skipped", 1, 1)
             else:
-                # This is a real error, report as error
-                logger.error(f"RAG poisoning attack setup error: {e}")
-                self.status.report_error("", f"Setup error: {e}")
+                # This is a real runtime error during attack execution, report as error
+                logger.error(f"RAG poisoning attack runtime error: {e}")
+                self.status.report_error("", f"Runtime error: {e}")
                 yield StatusUpdate(self.client_config, self.test_name, self.status, "Error", 1, 1)
         finally:
             # Always cleanup
