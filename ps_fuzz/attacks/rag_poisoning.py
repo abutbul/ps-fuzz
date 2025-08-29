@@ -14,8 +14,23 @@ import logging
 import tempfile
 import shutil
 import os
+from contextlib import contextmanager
 
 logger = logging.getLogger(__name__)
+
+@contextmanager
+def _suppress_loggers(logger_names):
+    """Temporarily raise log level to CRITICAL due to chromadb telemetry deprecation."""
+    previous_levels = {}
+    for name in logger_names:
+        lg = logging.getLogger(name)
+        previous_levels[name] = lg.level
+        lg.setLevel(logging.CRITICAL)
+    try:
+        yield
+    finally:
+        for name, lvl in previous_levels.items():
+            logging.getLogger(name).setLevel(lvl)
 
 # Check dependencies availability
 DEPENDENCIES_AVAILABLE = True
@@ -23,6 +38,8 @@ MISSING_PACKAGES = []
 
 try:
     from langchain_community.vectorstores import Chroma
+    suppress_names = ["chromadb"]
+
 except ImportError:
     DEPENDENCIES_AVAILABLE = False
     MISSING_PACKAGES.append("chromadb")
@@ -218,14 +235,17 @@ class TestRAGPoisoning(TestBase):
         embedding_function = self._get_embedding_function()
         
         # Create Chroma vectorstore
-        self.vectorstore = Chroma(
-            persist_directory=self.temp_dir,
-            embedding_function=embedding_function,
-            collection_name="rag_poisoning_test"
-        )
+        # Suppress telemetry/posthog/chromadb noise during Chroma init/persist
+        with _suppress_loggers(suppress_names):
+            self.vectorstore = Chroma(
+                persist_directory=self.temp_dir,
+                embedding_function=embedding_function,
+                collection_name="rag_poisoning_test"
+            )
         
         # Add benign documents
         benign_docs = self._create_benign_corpus()
+        # suppress telemetry during document ingestion too
         self.vectorstore.add_documents(benign_docs)
         
         # Add poisoned document
@@ -289,7 +309,9 @@ class TestRAGPoisoning(TestBase):
                         search_type="similarity",
                         search_kwargs={"k": 3}
                     )
-                    relevant_docs = retriever.get_relevant_documents(query)
+                    # suppress telemetry during retrieval
+                    with _suppress_loggers(suppress_names):
+                        relevant_docs = retriever.get_relevant_documents(query)
                     
                     # Create context from retrieved documents
                     context = "\n\n".join([doc.page_content for doc in relevant_docs])
