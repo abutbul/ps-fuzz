@@ -367,10 +367,14 @@ Answer:"""
                 "no module named" in error_str or
                 "model" in error_str and ("not found" in error_str or "try pulling" in error_str) or
                 "http code: 404" in error_str or
-                "embedding" in error_str and ("not available" in error_str or "not found" in error_str)):
+                "embedding" in error_str and ("not available" in error_str or "not found" in error_str) or
+                "invalid url" in error_str or
+                "no host supplied" in error_str or
+                "connection" in error_str and ("refused" in error_str or "failed" in error_str or "error" in error_str) or
+                "inference endpoint" in error_str):
                 # This is a setup/configuration issue, report as skipped
                 logger.warning(f"RAG poisoning attack skipped: {e}")
-                self.status.report_skipped("", f"Setup error - embedding model or dependencies not available: {e}")
+                self.status.report_skipped("", f"Setup error - embedding service configuration or connectivity issue: {e}")
                 yield StatusUpdate(self.client_config, self.test_name, self.status, "Skipped", 1, 1)
             else:
                 # This is a real runtime error during attack execution, report as error
