@@ -46,7 +46,7 @@ class AppConfig:
         print_table(
             title = "Current configuration",
             headers = ["Option", "Value"],
-            data = [[key, value] for key, value in attributes.items() if key != "system_prompt"] # print only relevant base URLs based on selected providers and only if they have values
+            data = [[key, value] for key, value in attributes.items() if key != "system_prompt"] # print all except the system prompt
         )
         print(f"{colorama.Style.BRIGHT}Current system prompt:{colorama.Style.RESET_ALL}")
         #print(f"{colorama.Style.DIM}{wrap_text(self.system_prompt, width=70)}{colorama.Style.RESET_ALL}")
