@@ -33,8 +33,8 @@ class TestStatus(object):
     def __str__(self):
         return f"TestStatus(breach_count={self.breach_count}, resilient_count={self.resilient_count}, skipped_count={self.skipped_count}, total_count={self.total_count}, log:{len(self.log)} entries)"
 
-    def report_breach(self, prompt: str, response: str, additional_info: str = "Attack succesfully broke system prompt protection"):
-        "Reports a succesful breach of the system prompt"
+    def report_breach(self, prompt: str, response: str, additional_info: str = "Attack successfully broke system prompt protection"):
+        "Reports a successful breach of the system prompt"
         self.breach_count += 1
         self.total_count += 1
         self.log.append(TestLogEntry(prompt, response, True, additional_info))
