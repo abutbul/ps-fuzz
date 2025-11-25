@@ -36,6 +36,7 @@ def _suppress_loggers(logger_names):
 DEPENDENCIES_AVAILABLE = True
 MISSING_PACKAGES = []
 
+suppress_names = []
 try:
     from langchain_community.vectorstores import Chroma
     suppress_names = ["chromadb"]
