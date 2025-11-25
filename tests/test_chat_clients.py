@@ -65,7 +65,7 @@ class TestClientLangChainBaseURL:
         
         with patch('ps_fuzz.chat_clients.chat_models_info', test_chat_models_info):
             # Create client with ollama_base_url parameter
-            client = ClientLangChain(
+            ClientLangChain(
                 backend='ollama',
                 model='llama2',
                 temperature=0.7,
