@@ -1,7 +1,6 @@
 import os, sys
 sys.path.append(os.path.abspath('.'))
 from unittest.mock import patch, MagicMock
-import pytest
 from ps_fuzz.chat_clients import ClientBase, ClientLangChain, MessageList, BaseMessage, SystemMessage, HumanMessage, AIMessage
 from ps_fuzz.langchain_integration import ChatModelParams, ChatModelInfo
 from ps_fuzz.attack_config import AttackConfig
