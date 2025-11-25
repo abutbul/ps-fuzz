@@ -367,12 +367,12 @@ Answer:"""
             if ("chromadb" in error_str or
                 "could not import" in error_str or
                 "no module named" in error_str or
-                "model" in error_str and ("not found" in error_str or "try pulling" in error_str) or
+                ("model" in error_str and ("not found" in error_str or "try pulling" in error_str)) or
                 "http code: 404" in error_str or
-                "embedding" in error_str and ("not available" in error_str or "not found" in error_str) or
+                ("embedding" in error_str and ("not available" in error_str or "not found" in error_str)) or
                 "invalid url" in error_str or
                 "no host supplied" in error_str or
-                "connection" in error_str and ("refused" in error_str or "failed" in error_str or "error" in error_str) or
+                ("connection" in error_str and ("refused" in error_str or "failed" in error_str or "error" in error_str)) or
                 "inference endpoint" in error_str):
                 # This is a setup/configuration issue, report as skipped
                 logger.warning(f"RAG poisoning attack skipped: {e}")
