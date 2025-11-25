@@ -9,7 +9,7 @@ from ..client_config import ClientConfig
 from ..attack_config import AttackConfig
 from ..test_base import TestBase, StatusUpdate
 from ..attack_registry import register_test
-from typing import Generator, Optional
+from typing import Generator
 import logging
 import tempfile
 import shutil
