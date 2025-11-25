@@ -246,11 +246,12 @@ class TestRAGPoisoning(TestBase):
         # Add benign documents
         benign_docs = self._create_benign_corpus()
         # suppress telemetry during document ingestion too
-        self.vectorstore.add_documents(benign_docs)
+        with _suppress_loggers(suppress_names):
+            self.vectorstore.add_documents(benign_docs)
         
         # Add poisoned document
-        poisoned_doc = self._create_poisoned_document()
-        self.vectorstore.add_documents([poisoned_doc])
+        with _suppress_loggers(suppress_names):
+            self.vectorstore.add_documents([poisoned_doc])
         
         # Persist the database
         self.vectorstore.persist()
