@@ -127,7 +127,7 @@ class TestClientLangChainBaseURL:
         )
         
         with patch('ps_fuzz.chat_clients.chat_models_info', test_chat_models_info):
-            client = ClientLangChain(
+            ClientLangChain(
                 backend='ollama',
                 model='llama2',
                 ollama_base_url='http://localhost:11434'
